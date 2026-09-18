@@ -1,0 +1,9 @@
+build/
+*.o
+*.d
+*.so
+logic_test
+a2s_test
+.vs/
+.idea/
+.vscode/

@@ -1,0 +1,65 @@
+"Phrases"
+{
+	// {PREFIX} is replaced with "Prefix". Colors: {DEFAULT} {GREEN} {LIME} {RED} {GOLD} {GRAY} {YELLOW} {LIGHTBLUE} {BLUE} {PURPLE} {PINK} {LIGHTRED} {OLIVE} {SILVER} {LIGHTPURPLE} {DARKRED}
+	// printf placeholders (%d %s) must stay in the same order as in the English text.
+
+	"Prefix"
+	{
+		"ru"		"{GREEN}[Серверы] {DEFAULT}"
+		"en"		"{GREEN}[Servers] {DEFAULT}"
+	}
+
+	// ---- menu ----
+	"ListTitle"
+	{
+		"ru"		"Серверы"
+		"en"		"Servers"
+	}
+	"Offline"
+	{
+		"ru"		"недоступен"
+		"en"		"offline"
+	}
+	"ConfirmTitle"
+	{
+		"ru"		"Хотите перейти?"
+		"en"		"Join this server?"
+	}
+	"DetailName"
+	{
+		"ru"		"Название: %s"
+		"en"		"Name: %s"
+	}
+	"DetailMap"
+	{
+		"ru"		"Карта: %s · %d/%d"
+		"en"		"Map: %s - %d/%d"
+	}
+	"Yes"
+	{
+		"ru"		"Да"
+		"en"		"Yes"
+	}
+	"No"
+	{
+		"ru"		"Нет"
+		"en"		"No"
+	}
+
+	// ---- chat ----
+	"Announce"
+	{
+		"ru"		"{PREFIX}{GOLD}%s{DEFAULT} - %s, {GREEN}%d/%d{DEFAULT} - введите {GREEN}!servers"
+		"en"		"{PREFIX}{GOLD}%s{DEFAULT} - %s, {GREEN}%d/%d{DEFAULT} - type {GREEN}!servers"
+	}
+	"NoServers"
+	{
+		"ru"		"{PREFIX}Серверы не настроены"
+		"en"		"{PREFIX}No servers are configured"
+	}
+	"ServerOffline"
+	{
+		"ru"		"{PREFIX}Сервер сейчас не отвечает"
+		"en"		"{PREFIX}This server is not responding right now"
+	}
+}
