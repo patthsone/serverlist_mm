@@ -42,14 +42,4 @@ seconds; the menu shows the last result, so opening it never waits for the netwo
 `ip` may contain only letters, digits, `.` and `-` plus `:port`; anything else is rejected at load time because the
 address is put into a console `connect` command. Texts are in `addons/translations/serverlist.phrases.txt` (ru/en).
 
-## Build
 
-GitHub Actions (`.github/workflows/build.yml`) builds Linux x86_64 against the **older pinned Metamod:Source** and the
-`cs2` HL2SDK (same revisions as BattlePass_mm). Every push to `main`/`master` replaces the rolling **`latest`**
-release with the new zip; a `v*` tag makes a normal versioned release.
-
-Host tests for the SDK-free A2S code:
-
-```bash
-g++ -std=c++17 -I. -Isrc tests/a2s_test.cpp src/A2S.cpp -o a2s_test && ./a2s_test
-```

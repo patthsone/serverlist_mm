@@ -42,6 +42,7 @@ bool LoadSettings()
                 continue;
             }
             e.addr = e.host + ":" + std::to_string(e.port);
+            LogInfo("Server \"%s\" -> %s", e.name.c_str(), e.addr.c_str());
             g_Settings.servers.push_back(std::move(e));
         }
     }
