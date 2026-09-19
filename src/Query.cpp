@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <condition_variable>
+#include <ctime>
 #include <mutex>
 #include <thread>
 
@@ -33,6 +34,8 @@ static void Worker(std::vector<a2s::Target> targets, int intervalMs)
                 g_State[i].map        = infos[i].map;
                 g_State[i].players    = infos[i].players;
                 g_State[i].maxPlayers = infos[i].maxPlayers;
+                g_State[i].error      = infos[i].error;
+                g_State[i].updated    = (long long)time(nullptr);
             }
         }
 

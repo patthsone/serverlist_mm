@@ -15,6 +15,7 @@ struct Info
     std::string map;
     std::string folder;
     std::string game;
+    std::string error;
     int         players    = 0;
     int         maxPlayers = 0;
     int         bots       = 0;

@@ -30,7 +30,11 @@ static CTimer* g_AnnounceTimer = nullptr;
 
 static bool OnServersCommand(int slot, const char* content)
 {
-    if (slot < 0) return true;
+    if (slot < 0)
+    {
+        slm::PrintStatus();
+        return true;
+    }
     slm::ShowList(slot);
     return true;
 }

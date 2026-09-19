@@ -4,6 +4,7 @@
 #include <cerrno>
 #include <chrono>
 #include <cstdlib>
+#include <cstdio>
 #include <cstring>
 
 #include <arpa/inet.h>
@@ -161,9 +162,10 @@ std::vector<Info> QueryAll(const std::vector<Target>& targets, int timeoutMs)
 {
     struct Slot
     {
-        int  fd      = -1;
-        bool done    = false;
-        bool retried = false;
+        int         fd      = -1;
+        bool        done    = false;
+        bool        retried = false;
+        sockaddr_in addr;
     };
 
     std::vector<Info> results(targets.size());
@@ -182,6 +184,7 @@ std::vector<Info> QueryAll(const std::vector<Target>& targets, int timeoutMs)
         std::string port = std::to_string(targets[i].port);
         if (getaddrinfo(targets[i].host.c_str(), port.c_str(), &hints, &res) != 0 || !res)
         {
+            results[i].error = "dns lookup failed";
             slots[i].done = true;
             continue;
         }
@@ -190,13 +193,17 @@ std::vector<Info> QueryAll(const std::vector<Target>& targets, int timeoutMs)
         if (fd < 0)
         {
             freeaddrinfo(res);
+            results[i].error = std::string("socket: ") + strerror(errno);
             slots[i].done = true;
             continue;
         }
 
         fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) | O_NONBLOCK);
-        if (connect(fd, res->ai_addr, res->ai_addrlen) != 0 || send(fd, first.data(), first.size(), 0) < 0)
+        memset(&slots[i].addr, 0, sizeof(slots[i].addr));
+        memcpy(&slots[i].addr, res->ai_addr, std::min<size_t>(res->ai_addrlen, sizeof(slots[i].addr)));
+        if (sendto(fd, first.data(), first.size(), 0, (const sockaddr*)&slots[i].addr, sizeof(slots[i].addr)) < 0)
         {
+            results[i].error = std::string("send: ") + strerror(errno);
             close(fd);
             slots[i].done = true;
         }
@@ -242,10 +249,11 @@ std::vector<Info> QueryAll(const std::vector<Target>& targets, int timeoutMs)
             Slot& slot = slots[owner[k]];
 
             uint8_t buf[1500];
-            ssize_t got = recv(slot.fd, buf, sizeof(buf), 0);
+            ssize_t got = recvfrom(slot.fd, buf, sizeof(buf), 0, nullptr, nullptr);
             if (got < 0)
             {
                 if (errno == EAGAIN || errno == EWOULDBLOCK) continue;
+                results[owner[k]].error = std::string("recv: ") + strerror(errno);
                 slot.done = true;
                 continue;
             }
@@ -260,13 +268,27 @@ std::vector<Info> QueryAll(const std::vector<Target>& targets, int timeoutMs)
             {
                 slot.retried = true;
                 std::vector<uint8_t> again = BuildRequest(true, challenge);
-                if (send(slot.fd, again.data(), again.size(), 0) < 0) slot.done = true;
+                if (sendto(slot.fd, again.data(), again.size(), 0, (const sockaddr*)&slot.addr, sizeof(slot.addr)) < 0)
+                {
+                    results[owner[k]].error = std::string("send: ") + strerror(errno);
+                    slot.done = true;
+                }
+            }
+            else if (kind == Reply::Bad)
+            {
+                char hex[32];
+                snprintf(hex, sizeof(hex), "%02X %02X %02X %02X %02X", got > 0 ? buf[0] : 0, got > 1 ? buf[1] : 0, got > 2 ? buf[2] : 0,
+                         got > 3 ? buf[3] : 0, got > 4 ? buf[4] : 0);
+                results[owner[k]].error = "unexpected reply (" + std::to_string(got) + " bytes: " + hex + ")";
             }
         }
     }
 
-    for (Slot& s : slots)
-        if (s.fd >= 0) close(s.fd);
+    for (size_t i = 0; i < slots.size(); ++i)
+    {
+        if (slots[i].fd >= 0) close(slots[i].fd);
+        if (!results[i].ok && results[i].error.empty()) results[i].error = "no reply (timeout)";
+    }
 
     return results;
 }

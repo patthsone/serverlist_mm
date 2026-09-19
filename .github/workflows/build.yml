@@ -18,7 +18,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build and run host tests (no SDK needed)
         run: |
-          g++ -std=c++17 -Wall -Wextra -I. -Isrc tests/a2s_test.cpp src/A2S.cpp -o a2s_test
+          g++ -std=c++17 -Wall -Wextra -I. -Isrc tests/a2s_test.cpp src/A2S.cpp -pthread -o a2s_test
           ./a2s_test
 
   build-linux:

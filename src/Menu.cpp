@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <ctime>
 #include <string>
 
 #include "Common.h"
@@ -140,4 +141,29 @@ void Announce()
         return;
     }
 }
+
+void PrintStatus()
+{
+    std::vector<slq::ServerState> state = slq::Snapshot();
+    Msg("[ServerList] %d server(s), update every %.0fs\n", (int)g_Settings.servers.size(), g_Settings.updateInterval);
+
+    long long now = (long long)time(nullptr);
+    for (size_t i = 0; i < g_Settings.servers.size(); ++i)
+    {
+        const ServerEntry& se = g_Settings.servers[i];
+        if (i >= state.size() || state[i].updated == 0)
+        {
+            Msg("[ServerList] \"%s\" %s: not queried yet\n", se.name.c_str(), se.addr.c_str());
+            continue;
+        }
+
+        const slq::ServerState& st = state[i];
+        if (st.ok)
+            Msg("[ServerList] \"%s\" %s: online, \"%s\" %s %d/%d (%llds ago)\n", se.name.c_str(), se.addr.c_str(), st.name.c_str(),
+                st.map.c_str(), st.players, st.maxPlayers, now - st.updated);
+        else
+            Msg("[ServerList] \"%s\" %s: OFFLINE - %s (%llds ago)\n", se.name.c_str(), se.addr.c_str(), st.error.c_str(), now - st.updated);
+    }
+}
+
 }

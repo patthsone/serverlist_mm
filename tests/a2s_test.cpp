@@ -1,7 +1,12 @@
 #include <cstdio>
 #include <cstring>
 #include <string>
+#include <thread>
 #include <vector>
+
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <unistd.h>
 
 #include "A2S.h"
 
@@ -30,6 +35,33 @@ static std::vector<uint8_t> InfoPacket(const std::string& name, const std::strin
     v.push_back((uint8_t)bots);
     v.insert(v.end(), { 'd', 'l', 0, 1 });
     return v;
+}
+
+static int BindUdp(uint16_t port)
+{
+    int fd = socket(AF_INET, SOCK_DGRAM, 0);
+    sockaddr_in a;
+    memset(&a, 0, sizeof(a));
+    a.sin_family      = AF_INET;
+    a.sin_port        = htons(port);
+    a.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    if (bind(fd, (sockaddr*)&a, sizeof(a)) != 0) { close(fd); return -1; }
+    timeval tv = { 3, 0 };
+    setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+    return fd;
+}
+
+static void ServeFromOtherPort(int rx, int tx, std::vector<uint8_t> reply)
+{
+    uint8_t buf[512];
+    sockaddr_in from;
+    socklen_t len = sizeof(from);
+    if (recvfrom(rx, buf, sizeof(buf), 0, (sockaddr*)&from, &len) <= 0) return;
+    std::vector<uint8_t> challenge = { 0xFF, 0xFF, 0xFF, 0xFF, 0x41, 0xBE, 0xBA, 0xFE, 0xCA };
+    sendto(tx, challenge.data(), challenge.size(), 0, (sockaddr*)&from, len);
+    len = sizeof(from);
+    if (recvfrom(rx, buf, sizeof(buf), 0, (sockaddr*)&from, &len) <= 0) return;
+    sendto(tx, reply.data(), reply.size(), 0, (sockaddr*)&from, len);
 }
 
 int main()
@@ -83,6 +115,19 @@ int main()
     std::vector<a2s::Target> unreachable = { { "127.0.0.1", 1 } };
     std::vector<a2s::Info> res = a2s::QueryAll(unreachable, 300);
     CHECK(res.size() == 1 && !res[0].ok);
+
+    int rx = BindUdp(28111), tx = BindUdp(28112);
+    CHECK(rx >= 0 && tx >= 0);
+    if (rx >= 0 && tx >= 0)
+    {
+        std::thread server(ServeFromOtherPort, rx, tx, InfoPacket("FPS", "de_dust2", 7, 64, 0));
+        std::vector<a2s::Target> asked = { { "127.0.0.1", 28111 } };
+        std::vector<a2s::Info> other = a2s::QueryAll(asked, 2000);
+        server.join();
+        CHECK(other.size() == 1 && other[0].ok && other[0].name == "FPS" && other[0].players == 7);
+    }
+    if (rx >= 0) close(rx);
+    if (tx >= 0) close(tx);
 
     if (g_failed == 0) std::printf("all a2s tests passed\n");
     return g_failed ? 1 : 0;

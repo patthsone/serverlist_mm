@@ -13,6 +13,8 @@ struct ServerState
     std::string map;
     int         players    = 0;
     int         maxPlayers = 0;
+    std::string error;
+    long long   updated    = 0;
 };
 
 void Start();
