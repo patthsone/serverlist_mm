@@ -111,8 +111,9 @@ void ShowDetail(int slot, int idx)
 
             g_pMenus->ClosePlayerMenu(iSlot);
 
-            std::string cmd = "connect " + g_Settings.servers[i].addr;
-            g_pPlayers->UseClientCommand(iSlot, cmd.c_str());
+            const std::string& addr = g_Settings.servers[i].addr;
+            LogInfo("Slot %d joins \"%s\" (%s)", iSlot, g_Settings.servers[i].name.c_str(), addr.c_str());
+            if (engine) engine->ClientCommand(iSlot, "connect %s", addr.c_str());
             return;
         }
 
