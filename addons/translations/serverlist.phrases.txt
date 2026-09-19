@@ -52,6 +52,11 @@
 		"ru"		"{PREFIX}{GOLD}%s{DEFAULT} - %s, {GREEN}%d/%d{DEFAULT} - введите {GREEN}!servers"
 		"en"		"{PREFIX}{GOLD}%s{DEFAULT} - %s, {GREEN}%d/%d{DEFAULT} - type {GREEN}!servers"
 	}
+	"JoinHint"
+	{
+		"ru"		"{PREFIX}Подключаемся к {GOLD}%s{DEFAULT}. Если ничего не произошло, введите в консоль: {GREEN}connect %s"
+		"en"		"{PREFIX}Connecting to {GOLD}%s{DEFAULT}. If nothing happens, type in the console: {GREEN}connect %s"
+	}
 	"NoServers"
 	{
 		"ru"		"{PREFIX}Серверы не настроены"

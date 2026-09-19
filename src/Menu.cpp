@@ -111,9 +111,20 @@ void ShowDetail(int slot, int idx)
 
             g_pMenus->ClosePlayerMenu(iSlot);
 
-            const std::string& addr = g_Settings.servers[i].addr;
-            LogInfo("Slot %d joins \"%s\" (%s)", iSlot, g_Settings.servers[i].name.c_str(), addr.c_str());
-            if (engine) engine->ClientCommand(iSlot, "connect %s", addr.c_str());
+            const std::string addr = g_Settings.servers[i].addr;
+            const std::string name = g_Settings.servers[i].name;
+            LogInfo("Slot %d joins \"%s\" (%s)", iSlot, name.c_str(), addr.c_str());
+
+            Say(iSlot, Fmt(Tr("JoinHint", "{PREFIX}Connecting to {GOLD}%s{DEFAULT}. If nothing happens, type in the console: {GREEN}connect %s"),
+                           name.c_str(), addr.c_str()));
+            if (g_pUtils) g_pUtils->PrintToConsole(iSlot, "connect %s", addr.c_str());
+
+            if (g_pUtils)
+            {
+                g_pUtils->NextFrame([iSlot, addr]() {
+                    if (engine && g_pPlayers && g_pPlayers->IsConnected(iSlot)) engine->ClientCommand(iSlot, "connect %s", addr.c_str());
+                });
+            }
             return;
         }
 
